@@ -98,6 +98,7 @@ class TransmitterSettingsViewController: UITableViewController {
     private enum LatestCalibrationRow: Int, CaseIterable {
         case glucose
         case date
+        case calibrateNow
     }
 
     private enum LatestConnectionRow: Int, CaseIterable {
@@ -219,17 +220,24 @@ class TransmitterSettingsViewController: UITableViewController {
 
             return cell
         case .latestCalibration:
-            let cell = tableView.dequeueReusableCell(withIdentifier: SettingsTableViewCell.className, for: indexPath) as! SettingsTableViewCell
             let calibration = cgmManager.latestReading?.lastCalibration
 
             switch LatestCalibrationRow(rawValue: indexPath.row)! {
             case .glucose:
+                let cell = tableView.dequeueReusableCell(withIdentifier: SettingsTableViewCell.className, for: indexPath) as! SettingsTableViewCell
                 cell.setGlucose(calibration?.glucose, unit: glucoseUnit, formatter: glucoseFormatter, isDisplayOnly: false)
+                return cell
             case .date:
+                let cell = tableView.dequeueReusableCell(withIdentifier: SettingsTableViewCell.className, for: indexPath) as! SettingsTableViewCell
                 cell.setGlucoseDate(calibration?.date, formatter: dateFormatter)
+                return cell
+            case .calibrateNow:
+                let cell = tableView.dequeueReusableCell(withIdentifier: TextButtonTableViewCell.className, for: indexPath) as! TextButtonTableViewCell
+                cell.textLabel?.text = LocalizedString("Calibrate Now", comment: "Title text for the button to calibrate sensor")
+                cell.textLabel?.textAlignment = .center
+                cell.isEnabled = true
+                return cell
             }
-
-            return cell
         case .latestConnection:
             let cell = tableView.dequeueReusableCell(withIdentifier: SettingsTableViewCell.className, for: indexPath) as! SettingsTableViewCell
             let connection = cgmManager.latestConnection
@@ -323,7 +331,14 @@ class TransmitterSettingsViewController: UITableViewController {
         case .latestReading:
             return false
         case .latestCalibration:
-            return false
+            switch LatestCalibrationRow(rawValue: indexPath.row)! {
+            case .glucose:
+                return false
+            case .date:
+                return false
+            case .calibrateNow:
+                return true
+            }
         case .latestConnection:
             return true
         case .ages:
@@ -352,6 +367,42 @@ class TransmitterSettingsViewController: UITableViewController {
         case .latestReading:
             break
         case .latestCalibration:
+            switch LatestCalibrationRow(rawValue: indexPath.row)! {
+            case .glucose:
+                break
+            case .date:
+                break
+            case .calibrateNow:
+                let dialog = UIAlertController(title: "Enter BG", message: "Calibrate sensor.", preferredStyle: .alert)
+
+                let unit = HKUnit.millimolesPerLiter
+
+                dialog.addTextField { (textField : UITextField!) in
+                    textField.placeholder = "mmol/L" // unit.localizedShortUnitString
+                    textField.keyboardType = .decimalPad
+                }
+
+                dialog.addAction(UIAlertAction(title: "Calibrate", style: .default, handler: { (action: UIAlertAction!) in
+                    let textField = dialog.textFields![0] as UITextField
+                    let minGlucose = HKQuantity(unit: HKUnit.milligramsPerDeciliter, doubleValue: 40)
+                    let maxGlucose = HKQuantity(unit: HKUnit.milligramsPerDeciliter, doubleValue: 400)
+
+                    if let text = textField.text, let entry = Double(text) {
+                        guard entry >= minGlucose.doubleValue(for: unit) && entry <= maxGlucose.doubleValue(for: unit) else {
+                            // TODO: notify the user if the glucose is not in range
+                            return
+                        }
+                        let glucose = HKQuantity(unit: unit, doubleValue: Double(entry))
+                        self.cgmManager.calibrate(to: glucose)
+                    }
+                }))
+
+                dialog.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+
+                present(dialog, animated: true) {
+                    tableView.deselectRow(at: indexPath, animated: true)
+                }
+            }
             break
         case .latestConnection:
             let vc = CommandResponseViewController(command: { (completionHandler) -> String in

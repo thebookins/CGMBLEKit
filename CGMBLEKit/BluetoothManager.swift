@@ -200,7 +200,7 @@ class BluetoothManager: NSObject {
      */
     fileprivate func scanAfterDelay() {
         DispatchQueue.global(qos: .utility).async {
-            Thread.sleep(forTimeInterval: 2)
+            Thread.sleep(forTimeInterval: 5)
 
             self.scanForPeripheral()
         }
@@ -247,16 +247,16 @@ extension BluetoothManager: CBCentralManagerDelegate {
     }
 
     func centralManager(_ central: CBCentralManager, willRestoreState dict: [String : Any]) {
-        dispatchPrecondition(condition: .onQueue(managerQueue))
-
-        if let peripherals = dict[CBCentralManagerRestoredStatePeripheralsKey] as? [CBPeripheral] {
-            for peripheral in peripherals {
-                if delegate == nil || delegate!.bluetoothManager(self, shouldConnectPeripheral: peripheral) {
-                    log.default("Restoring peripheral from state: %{public}@", peripheral.identifier.uuidString)
-                    self.peripheral = peripheral
-                }
-            }
-        }
+//        dispatchPrecondition(condition: .onQueue(managerQueue))
+//
+//        if let peripherals = dict[CBCentralManagerRestoredStatePeripheralsKey] as? [CBPeripheral] {
+//            for peripheral in peripherals {
+//                if delegate == nil || delegate!.bluetoothManager(self, shouldConnectPeripheral: peripheral) {
+//                    log.default("Restoring peripheral from state: %{public}@", peripheral.identifier.uuidString)
+//                    self.peripheral = peripheral
+//                }
+//            }
+//        }
     }
 
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
