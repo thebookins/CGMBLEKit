@@ -376,7 +376,6 @@ public class G5CGMManager: TransmitterManager, CGMManager {
 
     public var appURL: URL? {
         return nil
-        
     }
 
     public override var device: HKDevice? {
