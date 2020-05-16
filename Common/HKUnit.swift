@@ -17,4 +17,8 @@ extension HKUnit {
     static let milligramsPerDeciliterPerMinute: HKUnit = {
         return HKUnit.milligramsPerDeciliter.unitDivided(by: .minute())
     }()
+    
+    static let millimolesPerLiter: HKUnit = {
+        return HKUnit.moleUnit(with: .milli, molarMass: HKUnitMolarMassBloodGlucose).unitDivided(by: HKUnit.liter())
+    }()
 }
