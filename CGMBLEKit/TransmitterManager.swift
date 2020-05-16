@@ -18,11 +18,11 @@ public struct TransmitterManagerState: RawRepresentable, Equatable {
 
     public var transmitterID: String
 
-    public var passiveModeEnabled: Bool = true
+    public var passiveModeEnabled: Bool = false
     
     public var shouldSyncToRemoteService: Bool
 
-    public init(transmitterID: String, shouldSyncToRemoteService: Bool = false) {
+    public init(transmitterID: String, shouldSyncToRemoteService: Bool = true) {
         self.transmitterID = transmitterID
         self.shouldSyncToRemoteService = shouldSyncToRemoteService
     }
@@ -52,7 +52,7 @@ public protocol TransmitterManagerObserver: class {
 }
 
 
-public class TransmitterManager: TransmitterDelegate {
+public class TransmitterManager: TransmitterDelegate, TransmitterCommandSource {
     private var state: TransmitterManagerState
 
     private let observers = WeakSynchronizedSet<TransmitterManagerObserver>()
@@ -64,6 +64,7 @@ public class TransmitterManager: TransmitterDelegate {
         self.shareManager = ShareClientManager()
 
         self.transmitter.delegate = self
+        self.transmitter.commandSource = self
         
         #if targetEnvironment(simulator)
         setupSimulatedSampleGenerator()
@@ -187,6 +188,8 @@ public class TransmitterManager: TransmitterDelegate {
         }
     }
     private let lockedLatestReading: Locked<Glucose?> = Locked(nil)
+    
+    private var commandQueue = CommandQueue()
 
     private var dataIsFresh: Bool {
         guard let latestGlucose = latestReading,
@@ -326,6 +329,23 @@ public class TransmitterManager: TransmitterDelegate {
 
         logDeviceCommunication("Unknown sensor data: \(data.hexadecimalString)", type: .error)
     }
+
+    // MARK: - TransmitterCommandSource
+    public func dequeuePendingCommand(for transmitter: Transmitter) -> Command? {
+        return commandQueue.dequeue()
+    }
+
+    public func transmitter(_ transmitter: Transmitter, didFail command: Command, with error: Error) {
+        log.info("did fail command %{public}@ with error %{error}@", String(describing: command), String(describing: error))
+    }
+
+    public func transmitter(_ transmitter: Transmitter, didComplete command: Command) {
+        log.info("calibrated to %{public}@ at %{public}@", String(describing: command.rawValue["glucose"]), String(describing: command.rawValue["date"]))
+    }
+
+    public func calibrate(to glucose: HKQuantity) {
+        commandQueue.enqueue(.calibrateSensor(to: glucose, at: Date()))
+    }
 }
 
 
@@ -353,7 +373,7 @@ public class G5CGMManager: TransmitterManager, CGMManager {
     public static let localizedTitle = LocalizedString("Dexcom G5", comment: "CGM display title")
 
     public var appURL: URL? {
-        return URL(string: "dexcomcgm://")
+        return nil
     }
 
     public override var device: HKDevice? {
@@ -440,6 +460,26 @@ extension CalibrationState {
             }
         case .unknown(let rawValue):
             return String(format: LocalizedString("Sensor is in unknown state %1$d", comment: "The description of sensor calibration state when raw value is unknown. (1: missing data details)"), rawValue)
+        }
+    }
+}
+
+struct CommandQueue {
+    var list = [Command]()
+
+    var isEmpty: Bool {
+        return list.isEmpty
+    }
+
+    mutating func enqueue(_ element: Command) {
+        list.append(element)
+    }
+
+    mutating func dequeue() -> Command? {
+        if !list.isEmpty {
+            return list.removeFirst()
+        } else {
+            return nil
         }
     }
 }
