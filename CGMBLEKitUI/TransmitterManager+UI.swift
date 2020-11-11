@@ -5,7 +5,6 @@
 //  Copyright © 2018 LoopKit Authors. All rights reserved.
 //
 
-import SwiftUI
 import LoopKit
 import LoopKitUI
 import HealthKit
@@ -13,58 +12,38 @@ import CGMBLEKit
 
 
 extension G5CGMManager: CGMManagerUI {
-    public static func setupViewController(glucoseTintColor: Color, guidanceColors: GuidanceColors) -> (UIViewController & CGMManagerSetupViewController & CompletionNotifying)? {
+    public static func setupViewController() -> (UIViewController & CGMManagerSetupViewController & CompletionNotifying)? {
         let setupVC = TransmitterSetupViewController.instantiateFromStoryboard()
         setupVC.cgmManagerType = self
         return setupVC
     }
 
-    public func settingsViewController(for glucoseUnit: HKUnit, glucoseTintColor: Color, guidanceColors: GuidanceColors) -> (UIViewController & CompletionNotifying) {
-        let settings = TransmitterSettingsViewController(cgmManager: self, glucoseUnit: .milligramsPerDeciliter)
+    public func settingsViewController(for glucoseUnit: HKUnit) -> (UIViewController & CompletionNotifying) {
+        let settings = TransmitterSettingsViewController(cgmManager: self, glucoseUnit: glucoseUnit)
         let nav = SettingsNavigationViewController(rootViewController: settings)
         return nav
     }
 
     public var smallImage: UIImage? {
-        return nil
-    }
-    
-    // TODO Placeholder. This functionality will come with LOOP-1311
-    public var cgmStatusHighlight: DeviceStatusHighlight? {
-        return nil
-    }
-    
-    // TODO Placeholder. This functionality will come with LOOP-1311
-    public var cgmLifecycleProgress: DeviceLifecycleProgress? {
         return nil
     }
 }
 
 
 extension G6CGMManager: CGMManagerUI {
-    public static func setupViewController(glucoseTintColor: Color, guidanceColors: GuidanceColors) -> (UIViewController & CGMManagerSetupViewController & CompletionNotifying)? {
+    public static func setupViewController() -> (UIViewController & CGMManagerSetupViewController & CompletionNotifying)? {
         let setupVC = TransmitterSetupViewController.instantiateFromStoryboard()
         setupVC.cgmManagerType = self
         return setupVC
     }
 
-    public func settingsViewController(for glucoseUnit: HKUnit, glucoseTintColor: Color, guidanceColors: GuidanceColors) -> (UIViewController & CompletionNotifying) {
-        let settings = TransmitterSettingsViewController(cgmManager: self, glucoseUnit: .milligramsPerDeciliter)
+    public func settingsViewController(for glucoseUnit: HKUnit) -> (UIViewController & CompletionNotifying) {
+        let settings = TransmitterSettingsViewController(cgmManager: self, glucoseUnit: glucoseUnit)
         let nav = SettingsNavigationViewController(rootViewController: settings)
         return nav
     }
 
     public var smallImage: UIImage? {
-        UIImage(named: "g6", in: Bundle(for: TransmitterSetupViewController.self), compatibleWith: nil)!
-    }
-    
-    // TODO Placeholder. This functionality will come with LOOP-1311
-    public var cgmStatusHighlight: DeviceStatusHighlight? {
-        return nil
-    }
-    
-    // TODO Placeholder. This functionality will come with LOOP-1311
-    public var cgmLifecycleProgress: DeviceLifecycleProgress? {
         return nil
     }
 }

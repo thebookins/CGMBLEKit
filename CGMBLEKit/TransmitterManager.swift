@@ -93,7 +93,7 @@ public class TransmitterManager: TransmitterDelegate, TransmitterCommandSource {
         let period = TimeInterval(hours: 3)
         let glucoseValue = 100 + 20 * cos(Date().timeIntervalSinceReferenceDate.remainder(dividingBy: period) / period * Double.pi * 2)
         let quantity = HKQuantity(unit: .milligramsPerDeciliter, doubleValue: glucoseValue)
-        let sample = NewGlucoseSample(date: timestamp, quantity: quantity, isDisplayOnly: false, wasUserEntered: false, syncIdentifier: syncIdentifier)
+        let sample = NewGlucoseSample(date: timestamp, quantity: quantity, isDisplayOnly: false, syncIdentifier: syncIdentifier)
         self.updateDelegate(with: .newData([sample]))
     }
     #endif
@@ -160,14 +160,14 @@ public class TransmitterManager: TransmitterDelegate, TransmitterCommandSource {
         return dataIsFresh
     }
 
-    public var glucoseDisplay: GlucoseDisplayable? {
+    public var sensorState: SensorDisplayable? {
         let transmitterDate = latestReading?.readDate ?? .distantPast
         let shareDate = shareManager.latestBackfill?.startDate ?? .distantPast
 
         if transmitterDate >= shareDate {
             return latestReading
         } else {
-            return shareManager.glucoseDisplay
+            return shareManager.sensorState
         }
     }
 
@@ -293,7 +293,6 @@ public class TransmitterManager: TransmitterDelegate, TransmitterCommandSource {
                 date: glucose.readDate,
                 quantity: quantity,
                 isDisplayOnly: glucose.isDisplayOnly,
-                wasUserEntered: glucose.isDisplayOnly,
                 syncIdentifier: glucose.syncIdentifier,
                 device: device
             )
@@ -310,7 +309,6 @@ public class TransmitterManager: TransmitterDelegate, TransmitterCommandSource {
                 date: glucose.readDate,
                 quantity: quantity,
                 isDisplayOnly: glucose.isDisplayOnly,
-                wasUserEntered: glucose.isDisplayOnly,
                 syncIdentifier: glucose.syncIdentifier,
                 device: device
             )
@@ -464,28 +462,6 @@ extension CalibrationState {
             return String(format: LocalizedString("Sensor is in unknown state %1$d", comment: "The description of sensor calibration state when raw value is unknown. (1: missing data details)"), rawValue)
         }
     }
-}
-
-// MARK: - AlertResponder implementation
-extension G5CGMManager {
-    public func acknowledgeAlert(alertIdentifier: Alert.AlertIdentifier) { }
-}
-
-// MARK: - AlertSoundVendor implementation
-extension G5CGMManager {
-    public func getSoundBaseURL() -> URL? { return nil }
-    public func getSounds() -> [Alert.Sound] { return [] }
-}
-
-// MARK: - AlertResponder implementation
-extension G6CGMManager {
-    public func acknowledgeAlert(alertIdentifier: Alert.AlertIdentifier) { }
-}
-
-// MARK: - AlertSoundVendor implementation
-extension G6CGMManager {
-    public func getSoundBaseURL() -> URL? { return nil }
-    public func getSounds() -> [Alert.Sound] { return [] }
 }
 
 struct CommandQueue {
