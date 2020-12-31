@@ -446,21 +446,21 @@ extension CalibrationError: LocalizedError {
 
 extension CalibrationState {
     public var localizedDescription: String {
-        switch self {
-        case .known(let state):
-            switch state {
-            case .needCalibration7, .needCalibration14, .needFirstInitialCalibration, .needSecondInitialCalibration, .calibrationError8, .calibrationError9, .calibrationError10, .calibrationError13:
-                return LocalizedString("Sensor needs calibration", comment: "The description of sensor calibration state when sensor needs calibration.")
-            case .ok:
-                return LocalizedString("Sensor calibration is OK", comment: "The description of sensor calibration state when sensor calibration is ok.")
-            case .stopped, .sensorFailure11, .sensorFailure12, .sessionFailure15, .sessionFailure16, .sessionFailure17:
-                return LocalizedString("Sensor is stopped", comment: "The description of sensor calibration state when sensor sensor is stopped.")
-            case .warmup, .questionMarks:
-                return LocalizedString("Sensor is warming up", comment: "The description of sensor calibration state when sensor sensor is warming up.")
-            }
-        case .unknown(let rawValue):
-            return String(format: LocalizedString("Sensor is in unknown state %1$d", comment: "The description of sensor calibration state when raw value is unknown. (1: missing data details)"), rawValue)
-        }
+//         switch self {
+//         case .known(let state):
+//             switch state {
+//             case .needCalibration7, .needCalibration14, .needFirstInitialCalibration, .needSecondInitialCalibration, .calibrationError8, .calibrationError9, .calibrationError10, .calibrationError13:
+//                 return LocalizedString("Sensor needs calibration", comment: "The description of sensor calibration state when sensor needs calibration.")
+//             case .ok:
+//                 return LocalizedString("Sensor calibration is OK", comment: "The description of sensor calibration state when sensor calibration is ok.")
+//             case .stopped, .sensorFailure11, .sensorFailure12, .sessionFailure15, .sessionFailure16, .sessionFailure17:
+//                 return LocalizedString("Sensor is stopped", comment: "The description of sensor calibration state when sensor sensor is stopped.")
+//             case .warmup, .questionMarks:
+//                 return LocalizedString("Sensor is warming up", comment: "The description of sensor calibration state when sensor sensor is warming up.")
+//             }
+//         case .unknown(let rawValue):
+            return String(format: LocalizedString("Sensor is in state %1$d", comment: "The description of sensor calibration state when raw value is unknown. (1: missing data details)"), rawValue)
+//         }
     }
 }
 
